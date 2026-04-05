@@ -76,6 +76,16 @@ std::ostream& operator<<(std::ostream& os, const Complex& complex)
     return os << complex.real << ' ' << complex.imaginary << 'i';
 }
 
+Complex operator+(const Complex& c)
+{
+    return c;
+}
+
+Complex operator-(const Complex& c)
+{
+    return Complex(-c.getReal(), -c.getImaginary());
+}
+
 Complex operator+(const Complex& lhs, const Complex& rhs)
 {
     Complex result(lhs);

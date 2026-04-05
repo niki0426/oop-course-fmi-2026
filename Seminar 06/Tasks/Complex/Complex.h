@@ -25,7 +25,8 @@ private:
     double real;
     double imaginary;
 };
-
+Complex operator+(const Complex& c);
+Complex operator-(const Complex& c);
 Complex operator+(const Complex& lhs, const Complex& rhs);
 Complex operator-(const Complex& lhs, const Complex& rhs);
 Complex operator*(const Complex& lhs, const Complex& rhs);
