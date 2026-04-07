@@ -1,5 +1,7 @@
 # Knowledge check: Move семантики и rvalue референции
 
+>_За всички въпроси приемаме, че са include-нати нужните неща._
+
 ### Въпрос 1
 
 Какво ще се отпечата на конзолата след изпълнението на следния код?
@@ -49,7 +51,7 @@ f(const A&)
 Обяснение:
 - `a` е lvalue, затова се избира `f(const A&)`
 - `ca` е const lvalue, затова се избира `f(const A&)`
-- `A{}` е rvalue, затова се избира `f(A&&)`
+- `A()` е rvalue, затова се избира `f(A&&)`
 - `std::move(a)` е xvalue, затова се избира `f(A&&)`
 - `std::move(ca)` е `const A&&`, което не може да се върже към `A&&`, затова се избира `f(const A&)`
 
@@ -419,8 +421,6 @@ Wheel(const Wheel&)
 Какво ще се изведе на конзолата?
 
 ```cpp
-#include <iostream>
-
 struct Buffer
 {
     Buffer() = default;
@@ -430,24 +430,18 @@ struct Buffer
         std::cout << "Buffer(const Buffer&)\n";
     }
 
-    Buffer(Buffer&&) = delete;
-};
-
-struct Wrapper
-{
-    Buffer buffer;
+    Buffer(Buffer&&)
+    {
+        std::cout << "Buffer(Buffer&&)\n";
+    }
 };
 
 struct Container
 {
-    Wrapper wrapper;
+    Buffer buffer;
 
     Container() = default;
-
-    Container(const Container&)
-    {
-        std::cout << "Container(const Container&)\n";
-    }
+    Container(const Container&) = default;
 };
 
 int main()
@@ -461,14 +455,191 @@ int main()
 <summary>Отговор</summary>
 
 ```text
-Container(const Container&)
+Buffer(const Buffer&)
 ```
 
 Обяснение:
-- `Container` има user-declared copy constructor
-- няма user-declared move constructor
-- move constructor не се генерира автоматично
-- при `Container c2 = std::move(c1);` move няма, затова rvalue аргументът се подава към `const Container&`
-- извиква се copy constructor-ът `Container(const Container&)`
+`Container` има user-declared copy constructor (`Container(const Container&) = default;`). Заради това компилаторът не генерира имплицитен move constructor за `Container`. После при `Container c2 = std::move(c1);` move constructor няма, затова се използва copy constructor-ът на `Container`, който копира члена buffer. Така се извиква `Buffer(const Buffer&)`.
+
+</details>
+
+---
+
+### Въпрос 9
+
+Какво ще се изведе на конзолата?
+
+```cpp
+#include <iostream>
+
+class A {
+public:
+    A() {
+        std::cout << "A()" << std::endl;
+    }
+
+    A(const A& other) {
+        std::cout << "A(const A& other)" << std::endl;
+    }
+
+    A& operator=(const A& other) {
+        std::cout << "A& operator=(const A& other)" << std::endl;
+        return *this;
+    }
+
+    A(A&& other) noexcept {
+        std::cout << "A(A&& other)" << std::endl;
+    }
+
+    A& operator=(A&& other) noexcept {
+        std::cout << "operator=(A&& other)" << std::endl;
+        return *this;
+    }
+
+    ~A() {
+        std::cout << "~A()" << std::endl;
+    }
+};
+
+A&& g() {
+    return A();
+}
+
+int main()
+{
+    A obj = g();
+}
+```
+
+<details>
+<summary>Отговор</summary>
+
+Undefined behaviour, в повечето случаи ще се принтира:
+```text
+A()
+~A()
+A(A&& other)
+~A()
+```
+
+Обяснение:
+- A() в g() създава временен обект
+→ `A()`
+- Временният обект се унищожава при излизане от g()
+→ `~A()`
+- В main се вика move constructor към dangling reference (висяща референция)
+→ `A(A&& other)`
+- Накрая obj се унищожава
+→ `~A()`
+
+Това е Undefined behaviour и не е правилно. Правилното е функцията да връща нов обект от тип A.
+
+</details>
+
+---
+
+### Въпрос 10
+
+Какво ще се изведе на конзолата?
+
+```cpp
+#include <iostream>
+
+class A {
+public:
+    A() {
+        std::cout << "A()" << std::endl;
+    }
+
+    A(const A& other) {
+        std::cout << "A(const A& other)" << std::endl;
+    }
+
+    A& operator=(const A& other) {
+        std::cout << "A& operator=(const A& other)" << std::endl;
+        return *this;
+    }
+
+    A(A&& other) noexcept {
+        std::cout << "A(A&& other)" << std::endl;
+    }
+
+    A& operator=(A&& other) noexcept {
+        std::cout << "operator=(A&& other)" << std::endl;
+        return *this;
+    }
+
+    ~A() {
+        std::cout << "~A()" << std::endl;
+    }
+};
+
+A g() {
+    return A();
+}
+
+int main()
+{
+    A obj = g();
+}
+```
+
+<details>
+<summary>Отговор</summary>
+
+```text
+A()
+~A()
+```
+
+Обяснение:
+
+Тук има RVO (Return Value Optimization или guaranteed copy elision).
+Идеята е, че резултатът от функцията се конструира директно на мястото, където ще бъде крайният обект.
+Затова при `A obj = g();` обектът obj се създава директно.
+Последователността е:
+- извиква се A()
+- при края на main се извиква ~A()
+
+</details>
+
+---
+
+## Въпрос 11
+
+Какво ще се изведе на конзолата?
+
+```cpp
+class B{};
+
+class A {
+private:
+    B b;
+public:
+    A() {
+        std::cout << "A()" << std::endl;
+    }
+
+    explicit A(B b) {
+        std::cout << "A(B)" << std::endl;
+    }
+
+    explicit A(const B& b) {
+        std::cout << "A(const B&)" << std::endl;
+    }
+};
+
+int main()
+{
+    B b;
+    A a(b);
+}
+```
+
+
+<details>
+<summary>Отговор</summary>
+
+Нищо няма да се изведе, защото програмата няма да се компилира. Извикването `A a(b);` е двусмислено: и `A(B)`, и `A(const B&)` могат да приемат както lvalue, така и rvalue от тип B, затова и двата конструктора са подходящи за аргумента b. В този случай компилаторът не може да избере еднозначно кой конструктор да извика.
 
 </details>
