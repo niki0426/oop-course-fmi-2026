@@ -59,8 +59,86 @@ public:
         T* ptr;
     };
 
+    class ConstIterator {
+    public:
+        explicit ConstIterator(const T* ptr) : ptr(ptr) {}
+
+        const T& operator*() const {
+            return *ptr;
+        }
+
+        const T* operator->() const {
+            return ptr;
+        }
+
+        ConstIterator& operator++() {
+            ++ptr;
+            return *this;
+        }
+
+        ConstIterator operator++(int) {
+            ConstIterator temp(*this);
+            ++(*this);
+            return temp;
+        }
+
+        bool operator==(const ConstIterator& other) const {
+            return ptr == other.ptr;
+        }
+
+        bool operator!=(const ConstIterator& other) const {
+            return ptr != other.ptr;
+        }
+
+    private:
+        const T* ptr;
+    };
+
+    class ReverseIterator {
+    public:
+        explicit ReverseIterator(T* ptr) : ptr(ptr) {}
+
+        T& operator*() const {
+            return *ptr;
+        }
+
+        T* operator->() const {
+            return ptr;
+        }
+
+        ReverseIterator& operator++() {
+            --ptr;
+            return *this;
+        }
+
+        ReverseIterator operator++(int) {
+            ReverseIterator temp(*this);
+            ++(*this);
+            return temp;
+        }
+
+        bool operator==(const ReverseIterator& other) const {
+            return ptr == other.ptr;
+        }
+
+        bool operator!=(const ReverseIterator& other) const {
+            return ptr != other.ptr;
+        }
+
+    private:
+        T* ptr;
+    };
+
     Iterator begin();
     Iterator end();
+
+    ConstIterator begin() const;
+    ConstIterator end() const;
+    ConstIterator cbegin() const;
+    ConstIterator cend() const;
+
+    ReverseIterator rbegin();
+    ReverseIterator rend();
 
 private:
     T* data = nullptr;
@@ -211,11 +289,41 @@ void Vector<T>::pushBack(T&& obj) {
 }
 
 template <typename T>
-typename Vector<T>::Iterator Vector<T>::begin() {
+Vector<T>::Iterator Vector<T>::begin() {
     return Iterator(data);
 }
 
 template <typename T>
-typename Vector<T>::Iterator Vector<T>::end() {
+Vector<T>::Iterator Vector<T>::end() {
     return Iterator(data + currentSize);
+}
+
+template <typename T>
+Vector<T>::ConstIterator Vector<T>::begin() const {
+    return ConstIterator(data);
+}
+
+template <typename T>
+Vector<T>::ConstIterator Vector<T>::end() const {
+    return ConstIterator(data + currentSize);
+}
+
+template <typename T>
+Vector<T>::ConstIterator Vector<T>::cbegin() const {
+    return ConstIterator(data);
+}
+
+template <typename T>
+Vector<T>::ConstIterator Vector<T>::cend() const {
+    return ConstIterator(data + currentSize);
+}
+
+template <typename T>
+Vector<T>::ReverseIterator Vector<T>::rbegin() {
+    return ReverseIterator(data + currentSize - 1);
+}
+
+template <typename T>
+Vector<T>::ReverseIterator Vector<T>::rend() {
+    return ReverseIterator(data - 1);
 }
