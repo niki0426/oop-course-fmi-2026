@@ -10,8 +10,14 @@ class Restaurant
 {
 private:
     std::string name;
+
+    // we could use std::vector<std::unique_ptr<Table>> if we didn't have pointers to the tables in the Order class
     std::vector<std::shared_ptr<Table>> tables;
+
+    // we could use std::vector<std::unique_ptr<Dish>> if we didn't have pointers to the dishes in the Order class
     std::vector<std::shared_ptr<Dish>> menu;
+
+    // we could use std::vector<std::unique_ptr<Order>> if we didn't have pointers to orders in the Table class
     std::vector<std::shared_ptr<Order>> orders;
 
 public:
