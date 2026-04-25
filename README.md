@@ -15,6 +15,7 @@ _Материали от семинари по ООП на групи 4 и 5, С
 **[07](https://github.com/StefanShivarov/oop-course-fmi-2026/tree/main/Seminar%2007)** | Колекции от обекти. Масиви от указатели към обекти. Move семантики. Rule of Five |
 **[08](https://github.com/StefanShivarov/oop-course-fmi-2026/tree/main/Seminar%2008)** | Шаблони. Шаблонни функции и класове. Variadic templates. Concepts |
 **[09](https://github.com/StefanShivarov/oop-course-fmi-2026/tree/main/Seminar%2009)** | Rule of Zero. `std::vector` и `std::string`. Итератори. Умни указатели (smart pointers)
+**[10](https://github.com/StefanShivarov/oop-course-fmi-2026/tree/main/Seminar%2010)** | Преговор на Rule of Zero. Подготовка преди контролно 1 
 ## 📅 График на занятията
 
 <table>
